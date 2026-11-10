@@ -13,6 +13,11 @@ It is built for the evaluation question that matters after a demo works:
 ![Next.js](https://img.shields.io/badge/Next.js-16-111111?logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-6A5ACD)
+[![CI](https://github.com/JamesKevinJones/evalbench/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesKevinJones/evalbench/actions/workflows/ci.yml)
+
+![EvalBench home page captured from a local production build](docs/img/evalbench-home.png)
+
+_Local app at 1280×800 on 10 November 2026. The [demo result capture](docs/img/evalbench-demo-results.png) shows fixture scores, not live model judgments._
 
 ## Why EvalBench
 
@@ -64,10 +69,12 @@ Judge model ──────┘
 - Node.js 20 or newer
 - npm 10 or newer
 
+From the repository root:
+
 ```bash
-git clone https://github.com/JamesKevinJones/evalbench.git
-cd evalbench
-npm install
+npm ci
+npm run build
+npm test
 npm run dev
 ```
 
@@ -124,6 +131,28 @@ does not independently recompute a weighted aggregate, so the judge's returned
 overall score remains visible as a judgment rather than a falsely precise
 calculation.
 
+## Results and verification
+
+| Check | Observed result | Source |
+| --- | --- | --- |
+| Zero-key API integration | 1 test passed; no model calls, $0 API spend | `npm test`, 10 November 2026, commit `3081bd2579fd`; built with Next.js 16.4.6 |
+| Judge agreement with human labels | Not measured | [Evaluation plan](docs/EVAL_PLAN.md) |
+
+`npm test` starts the built app with `OPENAI_API_KEY` unset, then checks input
+validation, demo-mode labelling, candidate order, deterministic scores and
+criterion scores. CI runs install, lint, build and this test on each push and
+pull request. The test proves the local demo route; it does not establish judge
+quality. A live quality table needs the [planned measurements](docs/EVAL_PLAN.md).
+
+## What broke and what I learned
+
+A clean install surfaced vulnerable Next.js dependencies. This branch updates
+Next.js and its ESLint config to 16.4.6 and refreshes a transitive lockfile
+package; `npm audit --omit=dev` reported zero production advisories on
+10 November 2026. The full audit still has development dependency findings.
+The deterministic demo made the interface easy to verify, but its fixed scores
+cannot validate an LLM judge.
+
 ## Architecture
 
 ```text
@@ -172,6 +201,6 @@ limitations. Treat EvalBench as an evaluation aid, validate it against human
 labels, and do not use a single automated score as the sole basis for a
 high-stakes decision.
 
-## License
+## Licence
 
-MIT
+[MIT](LICENSE).
